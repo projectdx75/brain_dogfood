@@ -77,6 +77,15 @@
     cursor: pointer;
 }
 
+.heatmap-cell.selected {
+    transform: scale(1.4);
+    z-index: 15;
+    outline: 2px solid white;
+    box-shadow: 0 0 10px var(--accent);
+    filter: brightness(1.5);
+}
+
+
 .heatmap-cell.out {
     opacity: 0;
     pointer-events: none;

@@ -8,9 +8,13 @@ export const HeatmapManager = {
     container: null,
     data: [], // [{date: 'YYYY-MM-DD', count: N}, ...]
     currentRange: 365, // 기본 365일
+    selectedDate: null,
+    onDateSelect: null,
 
-    init(containerId) {
+    init(containerId, onDateSelect) {
         this.container = document.getElementById(containerId);
+        this.onDateSelect = onDateSelect;
+        
         if (!this.container) {
             console.warn('[Heatmap] Container not found:', containerId);
             return;
@@ -21,6 +25,11 @@ export const HeatmapManager = {
         if (savedRange) {
             this.currentRange = parseInt(savedRange, 10);
         }
+    },
+
+    setSelectedDate(date) {
+        this.selectedDate = date;
+        this.render();
     },
 
     /**
@@ -95,13 +104,14 @@ export const HeatmapManager = {
             const level = this.calculateLevel(count);
             
             const isOutOfRange = currentDate < startDate || currentDate > today;
+            const isSelected = this.selectedDate === dateStr;
             
             const tooltip = I18nManager.t('tooltip_heatmap_stat')
                 .replace('{date}', dateStr)
                 .replace('{count}', count);
 
             html += `
-                <div class="heatmap-cell ${isOutOfRange ? 'out' : `lvl-${level}`}" 
+                <div class="heatmap-cell ${isOutOfRange ? 'out' : `lvl-${level}`} ${isSelected ? 'selected' : ''}" 
                      data-date="${dateStr}" 
                      data-count="${count}"
                      title="${tooltip}">
@@ -144,5 +154,19 @@ export const HeatmapManager = {
                 this.refresh();
             };
         }
+
+        // 날짜 셀 클릭 이벤트 추가
+        this.container.querySelectorAll('.heatmap-cell[data-date]').forEach(cell => {
+            cell.onclick = (e) => {
+                const date = cell.dataset.date;
+                if (this.selectedDate === date) {
+                    this.selectedDate = null; // 해제
+                } else {
+                    this.selectedDate = date; // 선택
+                }
+                this.render(); // 다시 그려서 선택 효과 표시
+                if (this.onDateSelect) this.onDateSelect(this.selectedDate);
+            };
+        });
     }
 };

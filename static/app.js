@@ -22,7 +22,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 작성기 초기화 (저장 성공 시 데이터 새로고침 콜백 등록)
     ComposerManager.init(() => AppService.refreshData(updateSidebarCallback));
     
-    HeatmapManager.init('heatmapContainer'); // 히트맵 초기화
+    // 히트맵 초기화
+    HeatmapManager.init('heatmapContainer', (date) => {
+        AppService.setFilter({ date }, updateSidebarCallback);
+    });
     DrawerManager.init();
     Visualizer.init('graphContainer');
     UI.initSidebarToggle();

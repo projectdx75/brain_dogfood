@@ -17,6 +17,8 @@ def get_memos():
     group = request.args.get('group', 'all')
     query = request.args.get('query', '')
     date = request.args.get('date', '')
+    if date in ('null', 'undefined'):
+        date = ''
     
     conn = get_db()
     c = conn.cursor()

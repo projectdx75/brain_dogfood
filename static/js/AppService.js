@@ -99,6 +99,12 @@ export const AppService = {
         if (date !== undefined && this.state.currentFilterDate !== date) {
             this.state.currentFilterDate = date;
             changed = true;
+            
+            // UI 동기화
+            CalendarManager.setSelectedDate(date);
+            if (HeatmapManager.setSelectedDate) {
+                HeatmapManager.setSelectedDate(date);
+            }
         }
         if (query !== undefined && this.state.currentSearchQuery !== query) {
             this.state.currentSearchQuery = query;

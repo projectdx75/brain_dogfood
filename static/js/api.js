@@ -18,7 +18,8 @@ export const API = {
 
     async fetchMemos(filters = {}) {
         const { limit = 20, offset = 0, group = 'all', query = '' } = filters;
-        const params = new URLSearchParams({ limit, offset, group, query });
+        const date = filters.date || ''; // null이나 undefined를 빈 문자열로 변환
+        const params = new URLSearchParams({ limit, offset, group, query, date });
         return await this.request(`/api/memos?${params.toString()}`);
     },
     async fetchHeatmapData(days = 365) {

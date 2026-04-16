@@ -34,6 +34,11 @@ export const CalendarManager = {
         this.render();
     },
 
+    setSelectedDate(date) {
+        this.selectedDate = date;
+        this.render();
+    },
+
     bindEvents() {
         const header = document.getElementById('calendarHeader');
         if (header) {
