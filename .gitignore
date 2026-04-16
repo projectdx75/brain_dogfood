@@ -1,10 +1,34 @@
-# Brain Dogfood Public Repo Gitignore
+# [뇌사료] Git 배포용 .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+build/
+dist/
+
+# Configuration & Secrets
 .env
 config.json
-memos.db
-__pycache__/
-*.pyc
-logs/
+
+# Data & Databases
 data/
-.vscode/
+*.db
+*.sqlite3
+
+# Media & Uploads
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Logs & Temporary
+logs/
+*.log
+scratch/
+.gemini/
 .idea/
+.vscode/
+
+# System
+.DS_Store
+Thumbs.db

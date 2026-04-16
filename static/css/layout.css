@@ -105,3 +105,155 @@
 
 .action-btn:hover { background: rgba(184, 59, 94, 0.8); }
 .ai-btn:hover { background: var(--ai-accent); color: white; }
+
+/* Memo Footer Metadata Styling */
+.memo-metadata-footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    color: var(--muted);
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.memo-metadata-footer p {
+    margin: 5px 0;
+}
+
+/* === Composer Category Chips === */
+#composerCategoryBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    flex-wrap: wrap;
+}
+
+.cat-chip {
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+}
+
+.cat-chip:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-light);
+    transform: translateY(-1px);
+    color: white;
+}
+
+.cat-chip.active {
+    background: var(--accent-light);
+    color: white;
+    border-color: var(--accent-light);
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+    font-weight: 600;
+}
+
+.cat-chip.done-chip.active {
+    background: #10b981; /* Success Green */
+    border-color: #10b981;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* 💡 외부 카테고리 강조칩 (핀에 없지만 지정된 경우) */
+.cat-chip.external-active {
+    border: 1px dashed #ff4d4d !important;
+    background: rgba(255, 77, 77, 0.05);
+    color: #ff4d4d !important;
+}
+
+.cat-chip.external-active:hover {
+    background: rgba(255, 77, 77, 0.12);
+}
+
+.cat-chip kbd {
+    font-size: 10px;
+    opacity: 0.6;
+    margin-left: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+/* Category Management List */
+.cat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cat-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.cat-item .cat-name {
+    flex: 1;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.cat-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.cat-action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 2px;
+    opacity: 0.4;
+    transition: all 0.2s;
+}
+
+.cat-action-btn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.cat-action-btn.pin.active {
+    opacity: 1;
+    color: var(--accent);
+    filter: drop-shadow(0 0 5px var(--accent));
+}
+
+.cat-action-btn.delete:hover {
+    color: #f87171;
+}
+
+/* Custom Scrollbar for Category List */
+#categoryListContainer::-webkit-scrollbar {
+    width: 6px;
+}
+#categoryListContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+#categoryListContainer::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+#categoryListContainer::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}

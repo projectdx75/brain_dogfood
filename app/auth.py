@@ -5,8 +5,9 @@ from flask import session, redirect, url_for, request, current_app # type: ignor
 def check_auth(username, password):
     """
     환경 변수에 설정된 관리자 계정 정보와 일치하는지 확인합니다.
+    ADMIN_USERNAME 또는 ADMIN_USER 중 하나를 사용합니다.
     """
-    admin_user = os.getenv('ADMIN_USERNAME', 'admin')
+    admin_user = os.getenv('ADMIN_USERNAME') or os.getenv('ADMIN_USER') or 'admin'
     admin_password = os.getenv('ADMIN_PASSWORD', 'admin')
     return username == admin_user and password == admin_password
 

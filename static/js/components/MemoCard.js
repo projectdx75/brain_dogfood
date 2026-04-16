@@ -36,8 +36,13 @@ export function createMemoCardHtml(memo, isDone) {
                 </div>
             `;
         } else {
+            // 본문에서 하단 메타데이터 블록(--- 이후)을 제외하고 렌더링 (중복 표시 방지)
+            let content = memo.content || '';
+            const footerIndex = content.lastIndexOf('\n\n---\n');
+            const displayContent = footerIndex !== -1 ? content.substring(0, footerIndex) : content;
+
             // marked로 파싱한 후 DOMPurify로 살균하여 XSS 방지
-            htmlContent = DOMPurify.sanitize(marked.parse(memo.content || ''));
+            htmlContent = DOMPurify.sanitize(marked.parse(displayContent));
             htmlContent = parseInternalLinks(htmlContent);
             htmlContent = fixImagePaths(htmlContent);
         }

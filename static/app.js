@@ -10,6 +10,7 @@ import { CalendarManager } from './js/components/CalendarManager.js';
 import { Visualizer } from './js/components/Visualizer.js';
 import { HeatmapManager } from './js/components/HeatmapManager.js';
 import { DrawerManager } from './js/components/DrawerManager.js';
+import { CategoryManager } from './js/components/CategoryManager.js';
 import { ModalManager } from './js/components/ModalManager.js';
 import { I18nManager } from './js/utils/I18nManager.js';
 import { Constants } from './js/utils/Constants.js';
@@ -27,17 +28,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         AppService.setFilter({ date }, updateSidebarCallback);
     });
     DrawerManager.init();
+    CategoryManager.init(() => AppService.refreshData(updateSidebarCallback));
     Visualizer.init('graphContainer');
     UI.initSidebarToggle();
     
     // --- 🔹 Callbacks ---
-    const updateSidebarCallback = (memos, activeGroup) => {
-        UI.updateSidebar(memos, activeGroup, (newFilter) => {
+    const updateSidebarCallback = (memos, activeGroup, activeCategory) => {
+        UI.updateSidebar(memos, activeGroup, activeCategory, (newFilter) => {
             if (newFilter === Constants.GROUPS.FILES) {
                 ModalManager.openAssetLibrary((id, ms) => UI.openMemoModal(id, ms));
             } else {
                 AppService.setFilter({ group: newFilter }, updateSidebarCallback);
             }
+        }, (newCat) => {
+            AppService.setFilter({ category: newCat }, updateSidebarCallback);
         });
     };
 
@@ -138,6 +142,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     };
 
+    // --- 🔹 Category Management ---
+    document.getElementById('manageCategoryBtn').onclick = () => {
+        CategoryManager.open();
+    };
+
+    // --- 🔹 Global Shortcuts (Comprehensive Shift to Ctrl-based System) ---
+
     // --- 🔹 Global Shortcuts (Comprehensive Shift to Ctrl-based System) ---
     document.addEventListener('keydown', (e) => {
         const isCtrl = e.ctrlKey || e.metaKey;
@@ -189,6 +200,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (isAlt && key === '`') {
             e.preventDefault();
             ComposerManager.openEmpty();
+            return;
+        }
+
+        // 5. Category Slots: Alt + 1~4
+        if (isAlt && (key >= '1' && key <= '4')) {
+            if (ComposerManager.DOM.composer.style.display === 'block') {
+                e.preventDefault();
+                const slotIndex = parseInt(key) - 1; // 1->0 (Done), 2->1 (Cat1)...
+                ComposerManager.toggleCategoryBySlot(slotIndex);
+            }
         }
     });
 

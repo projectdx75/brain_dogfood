@@ -11,6 +11,8 @@
     "nav_logout": "로그아웃",
     "nav_settings": "환경 설정",
     "nav_toggle": "사이드바 토글",
+    "nav_categories": "카테고리",
+    "nav_category_manage": "카테고리 관리",
     
     "search_placeholder": "메모 검색... (제목, 내용, 태그)",
     "composer_placeholder": "지식의 파편을 남겨주세요...",
@@ -31,6 +33,7 @@
     "settings_security": "보안 테두리색",
     "settings_ai_accent": "AI 분석 강조색",
     "settings_ai_enable": "AI 기능 활성화",
+    "settings_category_enable": "카테고리 기능 활성화 (고급)",
     "settings_lang": "언어 설정",
     "settings_save": "저장",
     "settings_reset": "초기화",
@@ -89,6 +92,12 @@
     "label_group_explorer": "📁 그룹별 탐색",
     "label_tag_explorer": "🏷️ 태그별 탐색",
     "label_last_updated": "마지막 수정: ",
+    "label_category_done": "완료",
+    "label_no_category": "카테고리 없음",
+    "tooltip_add_category": "카테고리 추가/편집",
+    "prompt_category_name": "새 카테고리 이름을 입력하세요 (최대 10자):",
+    "msg_confirm_delete_category": "이 카테고리를 삭제할까요?",
+    "msg_category_limit": "카테고리는 최대 3개까지만 핀(Pin) 고정 가능합니다.",
     
     "shortcuts_label": "⌨️ 단축키",
     "shortcut_save": "저장",
@@ -96,6 +105,8 @@
     "shortcut_nebula": "네뷸라",
     "shortcut_slash": "슬래시 명령",
     "shortcut_edit": "즉시 수정",
+    "shortcut_cat_3": "Alt+4: %s",
+    "shortcut_cat_clear": "Alt+5: 분류 해제",
 
     "slash": {
         "task": "체크박스",

@@ -1,0 +1,7 @@
+[flake8]
+# E701: 한 줄에 콜론(:) 사용 (Multiple statements on one line (colon))
+# E702: 한 줄에 세미콜론(;) 사용 (Multiple statements on one line (semicolon))
+# 위 항목들은 가독성을 위한 스타일 가이드이므로, 개발 효율을 위해 영구 무시 설정함.
+ignore = E701, E702
+max-line-length = 120
+exclude = .git,__pycache__,docs,old,build,dist,venv

@@ -5,12 +5,17 @@ import { API } from '../api.js';
 import { EditorManager } from '../editor.js';
 import { I18nManager } from '../utils/I18nManager.js';
 import { Constants } from '../utils/Constants.js';
+import { AppService } from '../AppService.js';
+import { ThemeManager } from './ThemeManager.js';
+
+// --- NEW 서브 모듈 임포트 ---
+import { ComposerDraft } from './composer/ComposerDraft.js';
+import { ComposerCategoryUI } from './composer/ComposerCategoryUI.js';
 
 export const ComposerManager = {
     DOM: {},
 
     init(onSaveSuccess) {
-        // 타이밍 이슈 방지를 위해 DOM 요소 지연 할당
         this.DOM = {
             trigger: document.getElementById('composerTrigger'),
             composer: document.getElementById('composer'),
@@ -21,11 +26,15 @@ export const ComposerManager = {
             encryptionToggle: document.getElementById('encryptionToggle'),
             password: document.getElementById('memoPassword'),
             foldBtn: document.getElementById('foldBtn'),
-            discardBtn: document.getElementById('discardBtn')
+            discardBtn: document.getElementById('discardBtn'),
+            categoryBar: document.getElementById('composerCategoryBar')
         };
         
         if (!this.DOM.composer || !this.DOM.trigger) return;
 
+        this.selectedCategory = null; 
+        this.isDoneStatus = false;    
+        
         // 1. 이벤트 바인딩
         this.DOM.trigger.onclick = () => this.openEmpty();
         this.DOM.foldBtn.onclick = () => this.close();
@@ -44,28 +53,41 @@ export const ComposerManager = {
         };
 
         this.DOM.encryptionToggle.onclick = () => this.toggleEncryption();
-        
-        // 단축키 힌트 토글 바인딩
-        const shortcutToggle = document.getElementById('shortcutToggle');
-        const shortcutDetails = document.getElementById('shortcutDetails');
-        if (shortcutToggle && shortcutDetails) {
-            shortcutToggle.onclick = () => {
-                const isVisible = shortcutDetails.style.display !== 'none';
-                shortcutDetails.style.display = isVisible ? 'none' : 'flex';
-                const label = I18nManager.t('shortcuts_label');
-                shortcutToggle.textContent = isVisible ? label : `${label} ▲`;
+        this.initShortcutHint();
+
+        // 2. 자동 임시저장 및 키보드 리스너 등록
+        this.draftTimer = setInterval(() => this.saveDraft(), 3000);
+        ComposerDraft.checkRestore((draft) => this.restoreDraft(draft));
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+    },
+
+    initShortcutHint() {
+        const toggle = document.getElementById('shortcutToggle');
+        const details = document.getElementById('shortcutDetails');
+        if (toggle && details) {
+            toggle.onclick = () => {
+                const isVisible = details.style.display !== 'none';
+                details.style.display = isVisible ? 'none' : 'flex';
+                toggle.textContent = isVisible ? I18nManager.t('shortcuts_label') : `${I18nManager.t('shortcuts_label')} ▲`;
             };
         }
-
-        // --- 자동 임시저장 (Auto-Draft) ---
-        this.draftTimer = setInterval(() => this.saveDraft(), 3000);
-        this.checkDraftRestore();
     },
 
     openEmpty() {
         this.clear();
+
+        // 컨텍스트 기반 그룹 자동 설정 (all, done, tag 제외)
+        const currentGroup = AppService.state.currentFilterGroup;
+        if (currentGroup && 
+            currentGroup !== 'all' && 
+            currentGroup !== Constants.GROUPS.DONE && 
+            !currentGroup.startsWith('tag:')) {
+            this.DOM.group.value = currentGroup;
+        }
+
         this.DOM.composer.style.display = 'block';
         this.DOM.trigger.style.display = 'none';
+        this.renderCategoryChips(); // 💡 초기화 후 칩 렌더링
         this.DOM.title.focus();
     },
 
@@ -77,6 +99,10 @@ export const ComposerManager = {
         this.DOM.group.value = memo.group_name || Constants.GROUPS.DEFAULT;
         this.DOM.tags.value = (memo.tags || []).filter(t => t.source === 'user').map(t => t.name).join(', ');
         
+        // 💡 분류 및 상태 복원
+        this.selectedCategory = memo.category || null;
+        this.isDoneStatus = memo.status === 'done';
+
         EditorManager.setMarkdown(memo.content || '');
         EditorManager.setAttachedFiles(memo.attachments || []);
         
@@ -86,6 +112,7 @@ export const ComposerManager = {
 
         this.DOM.composer.style.display = 'block';
         this.DOM.trigger.style.display = 'none';
+        this.renderCategoryChips(); // 💡 렌더링
         window.scrollTo({ top: 0, behavior: 'smooth' });
     },
 
@@ -94,6 +121,8 @@ export const ComposerManager = {
             title: this.DOM.title.value.trim(),
             content: EditorManager.getMarkdown(),
             group_name: this.DOM.group.value.trim() || Constants.GROUPS.DEFAULT,
+            category: this.selectedCategory,
+            status: this.isDoneStatus ? 'done' : 'active',
             tags: this.DOM.tags.value.split(',').map(t => t.trim()).filter(t => t),
             is_encrypted: this.DOM.encryptionToggle.dataset.locked === 'true',
             password: this.DOM.password.value.trim(),
@@ -106,7 +135,7 @@ export const ComposerManager = {
         try {
             await API.saveMemo(data, this.DOM.id.value);
             EditorManager.sessionFiles.clear();
-            this.clearDraft();
+            ComposerDraft.clear(); // 💡 서브 모듈 위임
             if (callback) await callback();
             this.clear();
             this.close();
@@ -123,9 +152,12 @@ export const ComposerManager = {
         this.DOM.title.value = '';
         this.DOM.group.value = Constants.GROUPS.DEFAULT;
         this.DOM.tags.value = '';
+        this.selectedCategory = null;
+        this.isDoneStatus = false;
         EditorManager.setMarkdown('');
         EditorManager.setAttachedFiles([]);
         this.setLocked(false);
+        this.renderCategoryChips();
     },
 
     toggleEncryption() {
@@ -137,89 +169,70 @@ export const ComposerManager = {
         this.DOM.encryptionToggle.dataset.locked = locked;
         this.DOM.encryptionToggle.innerText = locked ? '🔒' : '🔓';
         this.DOM.password.style.display = locked ? 'block' : 'none';
-        
-        // 비밀번호가 명시적으로 전달된 경우에만 업데이트 (해제 시 기존 비번 유지)
-        if (password !== null) {
-            this.DOM.password.value = password;
-        }
-        
-        if (locked && !this.DOM.password.value) {
-            this.DOM.password.focus();
-        }
+        if (password !== null) this.DOM.password.value = password;
+        if (locked && !this.DOM.password.value) this.DOM.password.focus();
     },
 
-    // === 자동 임시저장 (Auto-Draft) ===
+    // --- 서브 모듈 위임 메서드들 ---
 
-    /**
-     * 현재 에디터 내용을 localStorage에 자동 저장
-     */
     saveDraft() {
-        // 컴포저가 닫혀있으면 저장하지 않음
         if (this.DOM.composer.style.display !== 'block') return;
-
-        const title = this.DOM.title.value;
-        const content = EditorManager.getMarkdown();
-
-        // 내용이 비어있으면 저장하지 않음
-        if (!title && !content) return;
-
-        const draft = {
-            title: title,
-            content: content,
-            group: this.DOM.group.value,
-            tags: this.DOM.tags.value,
-            editingId: this.DOM.id.value,
-            timestamp: Date.now()
-        };
-        localStorage.setItem('memo_draft', JSON.stringify(draft));
+        ComposerDraft.save(
+            this.DOM.id.value, 
+            this.DOM.title.value, 
+            this.DOM.group.value, 
+            this.DOM.tags.value, 
+            EditorManager.getMarkdown()
+        );
     },
 
-    /**
-     * 페이지 로드 시 임시저장된 내용이 있으면 복원 확인
-     */
-    checkDraftRestore() {
-        const raw = localStorage.getItem('memo_draft');
-        if (!raw) return;
+    restoreDraft(draft) {
+        this.openEmpty();
+        this.DOM.title.value = draft.title || '';
+        this.DOM.group.value = draft.group || Constants.GROUPS.DEFAULT;
+        this.DOM.tags.value = draft.tags || '';
+        if (draft.editingId) this.DOM.id.value = draft.editingId;
+        EditorManager.setMarkdown(draft.content || '');
+    },
 
-        try {
-            const draft = JSON.parse(raw);
-
-            // 24시간 이상 된 임시저장은 자동 삭제
-            if (Date.now() - draft.timestamp > 86400000) {
-                this.clearDraft();
-                return;
+    renderCategoryChips() {
+        ComposerCategoryUI.render(
+            this.DOM.categoryBar, 
+            this.selectedCategory, 
+            this.isDoneStatus, 
+            {
+                onSelect: (cat) => {
+                    this.selectedCategory = (this.selectedCategory === cat) ? null : cat;
+                    this.renderCategoryChips();
+                },
+                onToggleDone: () => {
+                    this.isDoneStatus = !this.isDoneStatus;
+                    this.renderCategoryChips();
+                }
             }
+        );
+    },
 
-            // 내용이 실제로 있는 경우에만 복원 확인
-            if (!draft.title && !draft.content) {
-                this.clearDraft();
-                return;
-            }
+    handleKeyDown(e) {
+        if (this.DOM.composer.style.display !== 'block') return;
+        if (!e.altKey) return;
 
-            const titlePreview = draft.title || I18nManager.t('label_untitled');
-            const confirmMsg = I18nManager.t('msg_draft_restore_confirm')
-                .replace('{title}', titlePreview);
-                
-            if (confirm(confirmMsg)) {
-                this.openEmpty();
-                this.DOM.title.value = draft.title || '';
-                this.DOM.group.value = draft.group || Constants.GROUPS.DEFAULT;
-                this.DOM.tags.value = draft.tags || '';
-                if (draft.editingId) this.DOM.id.value = draft.editingId;
-                EditorManager.setMarkdown(draft.content || '');
-            } else {
-                this.clearDraft();
+        const key = e.key;
+        if (key === '1') {
+            e.preventDefault();
+            this.isDoneStatus = !this.isDoneStatus;
+            this.renderCategoryChips();
+        } else if (key === '2' || key === '3' || key === '4') {
+            e.preventDefault();
+            const cat = ComposerCategoryUI.getCategoryBySlot(parseInt(key) - 1);
+            if (cat) {
+                this.selectedCategory = (this.selectedCategory === cat) ? null : cat;
+                this.renderCategoryChips();
             }
-        } catch (e) {
-            console.warn('[Draft] Failed to parse draft, deleting:', e);
-            this.clearDraft();
+        } else if (key === '5') {
+            e.preventDefault();
+            this.selectedCategory = null;
+            this.renderCategoryChips();
         }
-    },
-
-    /**
-     * 임시저장 데이터 삭제
-     */
-    clearDraft() {
-        localStorage.removeItem('memo_draft');
     }
 };

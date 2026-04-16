@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, session, current_app # type: ignore
+from flask import Blueprint, render_template, redirect, url_for, session  # type: ignore
 from ..auth import login_required
 import os
 import json
@@ -22,6 +22,7 @@ def login_page():
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 lang = json.load(f).get('lang', 'ko')
-        except: pass
+        except Exception:
+            pass
     
     return render_template('login.html', lang=lang)

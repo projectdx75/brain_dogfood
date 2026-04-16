@@ -4,7 +4,7 @@ from ..database import get_db
 from ..auth import login_required
 from ..constants import GROUP_DONE, GROUP_DEFAULT
 from ..utils.i18n import _t
-from ..utils import extract_links
+from ..utils import extract_links, parse_metadata, parse_and_clean_metadata, generate_auto_title
 from ..security import encrypt_content, decrypt_content
 
 memo_bp = Blueprint('memo', __name__)
@@ -17,8 +17,11 @@ def get_memos():
     group = request.args.get('group', 'all')
     query = request.args.get('query', '')
     date = request.args.get('date', '')
+    category = request.args.get('category')
     if date in ('null', 'undefined'):
         date = ''
+    if category in ('null', 'undefined'):
+        category = ''
     
     conn = get_db()
     c = conn.cursor()
@@ -52,8 +55,13 @@ def get_memos():
         where_clauses.append("created_at LIKE ?")
         params.append(f"{date}%")
 
-    # 4. 초기 로드 시 최근 5일 강조 (필터가 없는 경우에만 적용)
-    if offset == 0 and group == 'all' and not query and not date:
+    # 4. 카테고리 필터링
+    if category:
+        where_clauses.append("category = ?")
+        params.append(category)
+
+    # 5. 초기 로드 시 최근 5일 강조 (필터가 없는 경우에만 적용)
+    if offset == 0 and group == 'all' and not query and not date and not category:
         start_date = (datetime.datetime.now() - datetime.timedelta(days=5)).isoformat()
         where_clauses.append("(updated_at >= ? OR is_pinned = 1)")
         params.append(start_date)
@@ -155,7 +163,18 @@ def create_memo():
     user_tags = data.get('tags', [])
     is_encrypted = 1 if data.get('is_encrypted') else 0
     password = data.get('password', '').strip()
+    category = data.get('category')
     
+    # 본문 기반 메타데이터 통합 및 정리 ($그룹, #태그 하단 이동)
+    new_content, final_group, final_tags = parse_and_clean_metadata(content, ui_group=group_name, ui_tags=user_tags)
+    content = new_content
+    group_name = final_group
+    user_tags = final_tags
+
+    # 제목 자동 생성 (비어있을 경우)
+    if not title:
+        title = generate_auto_title(content)
+
     if is_encrypted and password:
         content = encrypt_content(content, password)
     elif is_encrypted and not password:
@@ -169,9 +188,9 @@ def create_memo():
     c = conn.cursor()
     try:
         c.execute('''
-            INSERT INTO memos (title, content, color, is_pinned, status, group_name, is_encrypted, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (title, content, color, is_pinned, status, group_name, is_encrypted, now, now))
+            INSERT INTO memos (title, content, color, is_pinned, status, group_name, category, is_encrypted, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (title, content, color, is_pinned, status, group_name, category, is_encrypted, now, now))
         memo_id = c.lastrowid
         
         for tag in user_tags:
@@ -208,25 +227,38 @@ def update_memo(memo_id):
     user_tags = data.get('tags')
     is_encrypted = data.get('is_encrypted')
     password = data.get('password', '').strip()
+    category = data.get('category')
     
     now = datetime.datetime.now().isoformat()
     conn = get_db()
     c = conn.cursor()
     
     # 보안: 암호화된 메모 수정 시 비밀번호 검증
-    c.execute('SELECT content, is_encrypted FROM memos WHERE id = ?', (memo_id,))
+    c.execute('SELECT content, is_encrypted, group_name FROM memos WHERE id = ?', (memo_id,))
     memo = c.fetchone()
     if memo and memo['is_encrypted']:
-        # 암호화된 메모지만 '암호화 해제(is_encrypted=0)' 요청이 온 경우는 
-        # 비밀번호 없이도 수정을 시도할 수 있어야 할까? (아니오, 인증이 필요함)
         if not password:
             conn.close()
             return jsonify({'error': _t('msg_encrypted_locked')}), 403
         
-        # 비밀번호가 맞는지 검증 (복호화 시도)
         if decrypt_content(memo['content'], password) is None:
             conn.close()
             return jsonify({'error': _t('msg_auth_failed')}), 403
+
+    # 본문 기반 메타데이터 통합 및 정리 ($그룹, #태그 하단 이동)
+    if content is not None:
+        new_content, final_group, final_tags = parse_and_clean_metadata(
+            content, 
+            ui_group=(group_name or memo['group_name']), 
+            ui_tags=(user_tags if user_tags is not None else [])
+        )
+        content = new_content
+        group_name = final_group
+        user_tags = final_tags
+
+    # 제목 자동 생성 (비어있을 경우)
+    if title == "":
+        title = generate_auto_title(content or "")
 
     try:
         updates = ['updated_at = ?']
@@ -252,6 +284,8 @@ def update_memo(memo_id):
             updates.append('group_name = ?'); params.append(group_name.strip() or GROUP_DEFAULT)
         if is_encrypted is not None:
             updates.append('is_encrypted = ?'); params.append(1 if is_encrypted else 0)
+        if category is not None:
+            updates.append('category = ?'); params.append(category)
             
         params.append(memo_id)
         c.execute(f"UPDATE memos SET {', '.join(updates)} WHERE id = ?", params)

@@ -19,6 +19,9 @@ const DOM = {
     scrollSentinel: document.getElementById('scrollSentinel')
 };
 
+// 모듈 레벨의 설정 캐시 관리 (this 바인딩 문제 해결)
+let settingsCache = {};
+
 export const UI = {
     /**
      * 사이드바 및 로그아웃 버튼 초기화
@@ -98,14 +101,51 @@ export const UI = {
     /**
      * 사이드바 시스템 고정 메뉴 상태 갱신
      */
-    updateSidebar(memos, activeGroup, onGroupClick) {
+    updateSidebar(memos, activeGroup, activeCategory, onGroupClick, onCategoryClick) {
         if (!DOM.systemNav) return;
         
+        // 1. 시스템 그룹 동기화
         DOM.systemNav.querySelectorAll('li').forEach(li => {
             const group = li.dataset.group;
             li.className = (group === activeGroup) ? 'active' : '';
             li.onclick = () => onGroupClick(group);
         });
+
+        // 2. 카테고리 동기화 (Pinned Categories)
+        import('./components/SidebarUI.js').then(({ renderCategoryList }) => {
+            const categoryNav = document.getElementById('categoryNav');
+            
+            // 💡 settingsCache가 비어있을 경우 ThemeManager에서 직접 복구 시도
+            const pinned = settingsCache.pinned_categories || (ThemeManager.settings ? ThemeManager.settings.pinned_categories : []);
+            
+            renderCategoryList(categoryNav, pinned, activeCategory, onCategoryClick);
+        });
+    },
+
+    /**
+     * 카테고리 기능 활성화 여부에 따라 UI 요소 노출 제어
+     */
+    applyCategoryVisibility(enabled) {
+        const composerBar = document.getElementById('composerCategoryBar');
+        const sidebarSection = document.getElementById('categorySidebarSection');
+        
+        if (composerBar) {
+            // 작성기 칩 영역은 가로 정렬을 위해 flex 레이아웃이 필수입니다.
+            composerBar.style.display = enabled ? 'flex' : 'none';
+        }
+        if (sidebarSection) {
+            // 사이드바 섹션은 기본 블록 레이아웃을 사용합니다.
+            sidebarSection.style.display = enabled ? 'block' : 'none';
+        }
+        
+        console.log(`Category UI visibility updated: ${enabled ? 'VISIBLE' : 'HIDDEN'}`);
+    },
+
+    /**
+     * 설정 캐시 업데이트 (내부용)
+     */
+    _updateSettingsCache(settings) {
+        settingsCache = settings;
     },
 
     /**
@@ -200,6 +240,9 @@ export const UI = {
         }
     }
 };
+
+// 전역 동기화를 위해 window 객체에 할당
+window.UI = UI;
 
 /**
  * 전역 파일 다운로드 함수 (항상 전역 스코프 유지)

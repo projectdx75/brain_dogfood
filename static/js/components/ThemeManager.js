@@ -27,7 +27,13 @@ export const ThemeManager = {
         }
 
         // ... 나머지 모달 제어 로직 유지 (기존 코드와 동일)
-        if (settingsBtn) settingsBtn.onclick = () => settingsModal.classList.add('active');
+        if (settingsBtn) {
+            settingsBtn.onclick = () => {
+                const langSelect = document.getElementById('set-lang');
+                if (langSelect) this.initialLang = langSelect.value;
+                settingsModal.classList.add('active');
+            };
+        }
         if (closeSettingsBtn) closeSettingsBtn.onclick = () => settingsModal.classList.remove('active');
         
         window.addEventListener('click', (e) => {
@@ -57,13 +63,23 @@ export const ThemeManager = {
                     data[mapping[p.id]] = p.value;
                 });
                 data['enable_ai'] = document.getElementById('set-enable-ai').checked;
+                data['enable_categories'] = document.getElementById('set-enable-categories').checked;
                 
                 // 언어 설정이 UI에 있다면 추가 (현재는 config.json 수동 명시 권장이나 대비책 마련)
                 const langSelect = document.getElementById('set-lang');
-                if (langSelect) data['lang'] = langSelect.value;
+                const newLang = langSelect ? langSelect.value : (this.initialLang || 'ko');
+                if (langSelect) data['lang'] = newLang;
                 
                 try {
                     await API.saveSettings(data);
+                    
+                    // 언어가 변경되었다면 페이지를 새로고침하여 모든 매니저들을 새로운 언어로 재초기화합니다.
+                    if (this.initialLang && this.initialLang !== newLang) {
+                        alert(I18nManager.t('msg_settings_saved'));
+                        window.location.reload();
+                        return;
+                    }
+
                     await this.applyTheme(data); 
                     alert(I18nManager.t('msg_settings_saved'));
                     settingsModal.classList.remove('active');
@@ -80,7 +96,8 @@ export const ThemeManager = {
                         card_color: "rgba(30, 41, 59, 0.85)",
                         encrypted_border: "#00f3ff",
                         ai_accent: "#8b5cf6",
-                        lang: "ko"
+                        lang: "ko",
+                        enable_categories: false
                     };
                     this.applyTheme(defaults);
                 }
@@ -92,6 +109,11 @@ export const ThemeManager = {
      * 테마 데이터를 실제 CSS 변수 및 UI 요소에 반영
      */
     async applyTheme(settings) {
+        this.settings = settings; // NEW: 설정 캐시 저장
+        if (window.UI) {
+            window.UI._updateSettingsCache(settings); 
+        }
+
         const mapping = {
             'bg_color': '--bg',
             'sidebar_color': '--sidebar',
@@ -117,7 +139,15 @@ export const ThemeManager = {
         const aiToggle = document.getElementById('set-enable-ai');
         if (aiToggle) aiToggle.checked = enableAI;
 
-        // 3. i18n 적용
+        // 3. 카테고리 활성화 상태 적용 (고급 옵션)
+        const enableCategories = (settings.enable_categories === true);
+        const catToggle = document.getElementById('set-enable-categories');
+        if (catToggle) catToggle.checked = enableCategories;
+        if (window.UI && typeof window.UI.applyCategoryVisibility === 'function') {
+            window.UI.applyCategoryVisibility(enableCategories);
+        }
+
+        // 4. i18n 적용
         const lang = settings.lang || 'ko';
         await I18nManager.init(lang);
         const langSelect = document.getElementById('set-lang');

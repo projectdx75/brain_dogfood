@@ -10,6 +10,7 @@ export const AppService = {
     state: {
         memosCache: [],
         currentFilterGroup: 'all',
+        currentFilterCategory: null, // NEW: 카테고리 필터
         currentFilterDate: null,
         currentSearchQuery: '',
         offset: 0,
@@ -42,11 +43,11 @@ export const AppService = {
         if (this.state.isLoading || !this.state.hasMore) return;
         
         this.state.isLoading = true;
-        // UI.showLoading(true)는 호출부에서 관리하거나 여기서 직접 호출 가능
         
         try {
             const filters = {
                 group: this.state.currentFilterGroup,
+                category: this.state.currentFilterCategory, // NEW
                 date: this.state.currentFilterDate,
                 query: this.state.currentSearchQuery,
                 offset: this.state.offset,
@@ -68,13 +69,10 @@ export const AppService = {
 
             this.state.offset += newMemos.length;
 
-            // 캘린더 점 표시는 첫 로드 시에면 하면 부족할 수 있으므로, 
-            // 필요 시 전체 데이터를 새로 고침하는 별도 API가 필요할 수 있음. 
-            // 여기서는 현재 캐시된 데이터 기반으로 업데이트.
             CalendarManager.updateMemoDates(this.state.memosCache);
             
             if (onUpdateSidebar) {
-                onUpdateSidebar(this.state.memosCache, this.state.currentFilterGroup);
+                onUpdateSidebar(this.state.memosCache, this.state.currentFilterGroup, this.state.currentFilterCategory);
             }
             
             UI.setHasMore(this.state.hasMore);
@@ -90,17 +88,34 @@ export const AppService = {
     /**
      * 필터 상태를 변경하고 데이터 초기화 후 다시 로딩
      */
-    async setFilter({ group, date, query }, onUpdateSidebar) {
+    async setFilter({ group, category, date, query }, onUpdateSidebar) {
         let changed = false;
-        if (group !== undefined && this.state.currentFilterGroup !== group) {
-            this.state.currentFilterGroup = group;
+        
+        // 1. 그룹 선택 처리
+        if (group !== undefined) {
+            // 그룹이 바뀌거나, 혹은 카테고리가 켜져있는 상태에서 그룹을 누르면 카테고리 해제
+            if (this.state.currentFilterGroup !== group || this.state.currentFilterCategory !== null) {
+                this.state.currentFilterGroup = group;
+                this.state.currentFilterCategory = null; 
+                changed = true;
+            }
+        }
+
+        // 2. 카테고리 선택 처리
+        if (category !== undefined) {
+            if (this.state.currentFilterCategory === category) {
+                // 이미 선택된 카테고리 재클릭 시 해제 (Toggle)
+                this.state.currentFilterCategory = null;
+            } else {
+                this.state.currentFilterCategory = category;
+            }
+            this.state.currentFilterGroup = 'all'; // 카테고리 필터 적용/변경 시 그룹 초기화
             changed = true;
         }
         if (date !== undefined && this.state.currentFilterDate !== date) {
             this.state.currentFilterDate = date;
             changed = true;
             
-            // UI 동기화
             CalendarManager.setSelectedDate(date);
             if (HeatmapManager.setSelectedDate) {
                 HeatmapManager.setSelectedDate(date);

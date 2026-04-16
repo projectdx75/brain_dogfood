@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session, redirect, url_for # type: ignore
+from flask import Blueprint, request, jsonify, session, redirect, url_for, current_app # type: ignore
 from ..auth import check_auth
 from ..utils.i18n import _t
 
@@ -13,7 +13,10 @@ def login():
     if check_auth(username, password):
         session.permanent = True # Enable permanent session to use LIFETIME config
         session['logged_in'] = True
+        current_app.logger.info(f"AUTH: Success login for user '{username}' from {request.remote_addr}")
         return jsonify({'message': 'Logged in successfully'})
+    
+    current_app.logger.warning(f"AUTH: Failed login attempt for user '{username}' from {request.remote_addr}")
     return jsonify({'error': _t('msg_auth_failed')}), 401
 
 @auth_bp.route('/logout')

@@ -37,6 +37,11 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
+    try:
+        c.execute("ALTER TABLE memos ADD COLUMN category TEXT")
+    except sqlite3.OperationalError:
+        pass
+
     
     # 2. Separate Tags Table (Normalized)
     c.execute('''

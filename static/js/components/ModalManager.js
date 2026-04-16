@@ -165,8 +165,21 @@ export const ModalManager = {
         if (!memo) return;
         
         import('../utils.js').then(({ parseInternalLinks, fixImagePaths }) => {
-            // 마크다운 파싱 후 살균 처리 (marked, DOMPurify는 global 사용)
-            let html = DOMPurify.sanitize(marked.parse(memo.content));
+            // 메모 본문과 메타데이터 푸터 분리 렌더링
+            let content = memo.content || '';
+            const footerIndex = content.lastIndexOf('\n\n---\n');
+            let html;
+            
+            if (footerIndex !== -1) {
+                const mainBody = content.substring(0, footerIndex);
+                const footerPart = content.substring(footerIndex + 5).trim(); // '---' 이후
+                
+                html = DOMPurify.sanitize(marked.parse(mainBody));
+                html += `<div class="memo-metadata-footer"><hr style="border:none; border-top:1px dashed rgba(255,255,255,0.1); margin-bottom:15px;">${DOMPurify.sanitize(marked.parse(footerPart))}</div>`;
+            } else {
+                html = DOMPurify.sanitize(marked.parse(content));
+            }
+
             html = parseInternalLinks(html);
             html = fixImagePaths(html);
             

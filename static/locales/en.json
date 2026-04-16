@@ -11,6 +11,8 @@
     "nav_logout": "Logout",
     "nav_settings": "Settings",
     "nav_toggle": "Toggle Sidebar",
+    "nav_categories": "Categories",
+    "nav_category_manage": "Manage Categories",
     
     "search_placeholder": "Search memos... (Title, Content, Tag)",
     "composer_placeholder": "Leave a fragment of knowledge...",
@@ -31,6 +33,7 @@
     "settings_security": "Security Border Color",
     "settings_ai_accent": "AI Accent Color",
     "settings_ai_enable": "Enable AI Features",
+    "settings_category_enable": "Enable Category Feature (Advanced)",
     "settings_lang": "Language",
     "settings_save": "Save Settings",
     "settings_reset": "Reset",
@@ -90,6 +93,12 @@
     "label_group_explorer": "📁 Group Explorer",
     "label_tag_explorer": "🏷️ Tag Explorer",
     "label_last_updated": "Last updated: ",
+    "label_category_done": "Done",
+    "label_no_category": "No Category",
+    "tooltip_add_category": "Add/Edit Category",
+    "prompt_category_name": "Enter category name (max 10 chars):",
+    "msg_confirm_delete_category": "Delete this category?",
+    "msg_category_limit": "Maximum 3 categories can be pinned.",
     
     "shortcuts_label": "⌨️ Shortcuts",
     "shortcut_save": "Save",
@@ -109,7 +118,9 @@
         "h2": "Heading 2",
         "h3": "Heading 3",
         "ai_summary": "AI Summary",
-        "ai_tags": "AI Tags"
+        "ai_tags": "AI Tags",
+        "shortcut_cat_3": "Alt+4: %s",
+        "shortcut_cat_clear": "Alt+5: Clear Category"
     },
 
     "calendar_months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],

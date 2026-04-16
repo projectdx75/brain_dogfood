@@ -1,0 +1,43 @@
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal">
+    <div class="modal-content glass-panel" style="max-width: 400px; padding: 25px;">
+        <h2 style="margin-bottom: 20px; font-weight: 800; background: linear-gradient(135deg, #38bdf8, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" data-i18n="settings_title">⚙️ Settings</h2>
+        
+        <div class="settings-grid">
+            <label data-i18n="settings_bg">전체 배경색</label>
+            <input type="color" id="set-bg" data-var="--bg">
+            
+            <label data-i18n="settings_sidebar">사이드바 색상</label>
+            <input type="color" id="set-sidebar" data-var="--sidebar">
+            
+            <label data-i18n="settings_card">메모지 색상</label>
+            <input type="color" id="set-card" data-var="--card">
+            
+            <label data-i18n="settings_security">보안 테두리색</label>
+            <input type="color" id="set-encrypted" data-var="--encrypted-border">
+            
+            <label data-i18n="settings_ai_accent">AI 분석 강조색</label>
+            <input type="color" id="set-ai" data-var="--ai-accent">
+
+            <label style="font-weight: 800; color: var(--ai-accent);" data-i18n="settings_ai_enable">AI 기능 활성화</label>
+            <input type="checkbox" id="set-enable-ai" style="width: 20px; height: 20px; cursor: pointer;">
+
+            <label style="font-weight: 800; color: #38bdf8;" data-i18n="settings_category_enable">카테고리 기능 활성화 (고급)</label>
+            <input type="checkbox" id="set-enable-categories" style="width: 20px; height: 20px; cursor: pointer;">
+        </div>
+
+        <div class="settings-grid">
+            <label data-i18n="settings_lang">언어 설정</label>
+            <select id="set-lang" class="meta-field" style="width: 100px;">
+                <option value="ko">한국어</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+
+        <div class="settings-actions">
+            <button id="resetThemeBtn" class="action-btn" style="font-size: 0.85rem;" data-i18n="settings_reset">Reset</button>
+            <button id="saveThemeBtn" class="primary-btn" data-i18n="settings_save">Save</button>
+            <button id="closeSettingsBtn" class="action-btn" data-i18n="settings_close">Close</button>
+        </div>
+    </div>
+</div>

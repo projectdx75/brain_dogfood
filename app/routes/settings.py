@@ -15,7 +15,10 @@ DEFAULT_SETTINGS = {
     "encrypted_border": "#00f3ff",
     "ai_accent": "#8b5cf6",
     "enable_ai": True,
-    "lang": "ko"
+    "lang": "ko",
+    "enable_categories": False,    # 카테고리 기능 활성화 여부 (고급 옵션)
+    "categories": [],           # 무제한 전체 목록
+    "pinned_categories": []    # 최대 3개 (Alt+2~4 할당용)
 }
 
 @settings_bp.route('/api/settings', methods=['GET'])

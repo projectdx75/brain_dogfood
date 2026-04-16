@@ -9,6 +9,13 @@ export const EditorManager = {
     sessionFiles: new Set(), // 이번 세션에 새로 추가된 파일 트래킹 (취소 시 삭제용)
 
     init(elSelector, onCtrlEnter) {
+        // 이미 초기화된 경우 기존 에디터 인스턴스 반환 및 중복 방지
+        const container = document.querySelector(elSelector);
+        if (this.editor && container && container.querySelector('.toastui-editor-defaultUI')) {
+            console.log('[Editor] Already initialized, skipping init.');
+            return this.editor;
+        }
+
         const isMobile = window.innerWidth <= 768;
         
         // --- 플러그인 설정 (글자 색상) ---

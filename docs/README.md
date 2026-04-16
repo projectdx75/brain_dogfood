@@ -1,4 +1,4 @@
-# 🧠 뇌사료 (Brain Dogfood) 프로젝트 문서화 (v5.0+)
+# 🧠 뇌사료 (Brain Dogfood) 프로젝트 문서화 (v1.5)
 
 > **"지식은 기록될 때 힘을 얻고, 연결될 때 생명을 얻는다."**
 
@@ -12,10 +12,11 @@
     - **이중 보안**: 메모별 개별 암호화 및 미디어 보안 실드.
     - **AI 구조화**: Gemini 2.0 Flash 기반 자동 요약 및 지능형 태깅.
 
-## ✨ What's New in v5.0
-- **Heatmap**: 최근 1년/6개월/3개월/1개월 활동량 지표 추가.
-- **Performance**: 대량 데이터 로딩 최적화(Bulk Fetch) 및 무한 스크롤 도입.
-- **Editor**: 중요 지식 강조를 위한 글자 색상(Color Syntax) 기능 통합.
+## ✨ What's New in v1.5
+- **Advanced Category Toggle**: 라이트 유저를 위해 카테고리 기능을 숨기거나 켤 수 있는 옵션 도입.
+- **i18n Stabilization**: 한국어/영어 전환 시 히트맵, 달력 등 동적 컴포넌트까지 완벽하게 자가 교정 및 번역 반영.
+- **V5 Metadata Shield**: 정규식 엔진 고도화를 통해 시스템 메타데이터 중복 및 푸터 손상 원천 차단.
+- **Data Integrity**: 다국어 환경의 정합성을 위해 내부 그룹명을 영문 상수로 통일.
 
 ## 📂 문서 인덱스
 1. [**사용자 매뉴얼 (User Manual)**](user_manual.md): **[최초 사용자 필독]** 사용법 및 연결 문법
@@ -27,4 +28,4 @@
 7. [**단축키 가이드 (Shortcuts Guide)**](shortcuts.md): **[업무 효율 극대화]** 탐색 및 편집 단축키 총정리
 
 ---
-*Last Updated: 2026-04-15*
+*Last Updated: 2026-04-16 (v1.5 Milestone Release)*

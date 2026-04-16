@@ -1,0 +1,51 @@
+<div class="composer-wrapper">
+    <!-- Accordion default closed state -->
+    <div id="composerTrigger" class="glass-panel" style="cursor: text;">
+        <span style="color: var(--muted); font-size: 1.1rem; font-weight: 600;" data-i18n="composer_placeholder_trigger">Capture knowledge or drop files...</span>
+    </div>
+
+    <!-- Actual Composer -->
+    <form id="composer" class="glass-panel" style="display: none;">
+        <input type="hidden" id="editingMemoId" value="">
+        
+        <div style="display: flex; gap:10px; align-items:center; margin-bottom: 10px;">
+            <input type="text" id="memoTitle" data-i18n-placeholder="composer_title" autocomplete="off" style="flex: 1;">
+            <button type="button" id="foldBtn" class="action-btn" style="height:35px; width:35px; padding:0;" data-i18n-title="tooltip_fold">▲</button>
+        </div>
+
+        <div class="meta-inputs" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+            <input type="text" id="memoGroup" data-i18n-placeholder="composer_group" class="meta-field" style="width: 120px;">
+            <input type="text" id="memoTags" data-i18n-placeholder="composer_tags" class="meta-field" style="flex: 1;">
+            <button type="button" id="encryptionToggle" class="action-btn" data-i18n-title="composer_encrypt" style="height:34px; padding:0 10px;">🔓</button>
+            <input type="password" id="memoPassword" data-i18n-placeholder="composer_password" class="meta-field" style="width: 120px; display: none;">
+        </div>
+        
+        <div class="editor-resize-wrapper">
+            <div id="editor"></div>
+        </div>
+        <!-- Pending Attachments list in Composer -->
+        <div id="editorAttachments" class="memo-attachments" style="margin-top: 15px;"></div>
+
+        <!-- Category Slots (Quick Assign) -->
+        <div id="composerCategoryBar">
+            <!-- JS will render category chips here -->
+        </div>
+
+        <!-- 키보드 단축키 힌트 (토글) -->
+        <div id="shortcutHint" class="shortcut-hint-bar">
+            <button type="button" id="shortcutToggle" class="shortcut-toggle-btn" data-i18n="shortcuts_label">⌨️ Shortcuts</button>
+            <div id="shortcutDetails" class="shortcut-details" style="display: none;">
+                <span class="sk"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> <span data-i18n="shortcut_save">Save</span></span>
+                <span class="sk"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> / <kbd>Alt</kbd>+<kbd>`</kbd> <span data-i18n="shortcut_new">New Memo</span></span>
+                <span class="sk"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> <span data-i18n="shortcut_nebula">Nebula</span></span>
+                <span class="sk"><kbd>/</kbd> <span data-i18n="shortcut_slash">Slash Commands</span></span>
+                <span class="sk"><kbd>Alt</kbd>+<kbd>Click</kbd> <span data-i18n="shortcut_edit">Quick Edit</span></span>
+            </div>
+        </div>
+
+        <div class="composer-actions" style="display: flex; gap: 10px; margin-top: 15px; justify-content: flex-end;">
+            <button type="button" id="discardBtn" class="action-btn" style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2);" data-i18n="composer_discard">Discard (Delete)</button>
+            <button type="submit" id="submitBtn" class="primary-btn" data-i18n="composer_save">Save Memo</button>
+        </div>
+    </form>
+</div>

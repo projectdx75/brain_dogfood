@@ -45,3 +45,27 @@ export function renderGroupList(container, groups, activeGroup, onGroupClick) {
         container.appendChild(li);
     });
 }
+
+/**
+ * 카테고리 목록 HTML 렌더링 (Pinned Categories 전용)
+ */
+export function renderCategoryList(container, pinnedCategories, activeCategory, onCategoryClick) {
+    if (!container) return;
+    
+    container.innerHTML = '';
+    pinnedCategories.forEach(cat => {
+        const li = document.createElement('li');
+        li.className = (cat === activeCategory) ? 'active' : '';
+        li.title = cat; // 💡 사이드바 축소 시 이름을 보여주기 위해 title 추가
+        li.innerHTML = `<span class="icon">🏷️</span> <span class="text">${escapeHTML(cat)}</span>`;
+        li.onclick = () => onCategoryClick(cat);
+        container.appendChild(li);
+    });
+
+    if (pinnedCategories.length === 0) {
+        const li = document.createElement('li');
+        li.style.cssText = 'font-size: 0.8rem; color: var(--muted); padding: 5px 15px; cursor: default;';
+        li.textContent = I18nManager.t('label_no_category');
+        container.appendChild(li);
+    }
+}

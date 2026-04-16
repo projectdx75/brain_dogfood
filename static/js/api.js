@@ -18,12 +18,22 @@ export const API = {
 
     async fetchMemos(filters = {}) {
         const { limit = 20, offset = 0, group = 'all', query = '' } = filters;
-        const date = filters.date || ''; // null이나 undefined를 빈 문자열로 변환
-        const params = new URLSearchParams({ limit, offset, group, query, date });
+        const date = filters.date || ''; 
+        const category = (filters.category === null || filters.category === undefined) ? '' : filters.category;
+        
+        const params = new URLSearchParams({ 
+            limit, 
+            offset, 
+            group, 
+            query, 
+            category, 
+            date,
+            _t: Date.now() // 브라우저 캐시 방지용 타임스탬프
+        });
         return await this.request(`/api/memos?${params.toString()}`);
     },
     async fetchHeatmapData(days = 365) {
-        return await this.request(`/api/stats/heatmap?days=${days}`);
+        return await this.request(`/api/stats/heatmap?days=${days}&_t=${Date.now()}`);
     },
 
     async saveMemo(payload, id = null) {
@@ -52,7 +62,7 @@ export const API = {
     },
 
     async fetchAssets() {
-        return await this.request('/api/assets');
+        return await this.request(`/api/assets?_t=${Date.now()}`);
     },
 
     async uploadFile(file) {
