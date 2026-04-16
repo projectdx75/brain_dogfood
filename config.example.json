@@ -4,6 +4,25 @@
     "card_color": "rgba(30, 41, 59, 0.85)",
     "encrypted_border": "#00f3ff",
     "ai_accent": "#8b5cf6",
+    "lang": "en",
     "enable_ai": false,
-    "lang": "en"
+    "enable_categories": false,
+    "categories": [
+        "Personal",
+        "Work",
+        "Idea"
+    ],
+    "pinned_categories": [
+        "Personal"
+    ],
+    "upload_security": {
+        "allowed_extensions": [
+            "png", "jpg", "jpeg", "gif", "webp", "svg",
+            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+            "zip", "rar", "7z", "txt", "md"
+        ],
+        "blocked_extensions": [
+            "exe", "bat", "cmd", "sh", "ps1", "vbs", "js", "php", "py"
+        ]
+    }
 }
