@@ -34,7 +34,20 @@ def create_app():
 
     @app.errorhandler(403)
     def forbidden(e):
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'Forbidden', 'message': 'Suspicious activity detected'}), 403
         return "Forbidden: Suspicious activity detected. Your IP has been logged.", 403
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # API 요청인 경우 항상 JSON 반환
+        if request.path.startswith('/api/'):
+            from werkzeug.exceptions import HTTPException
+            if isinstance(e, HTTPException):
+                return jsonify({'error': e.name, 'message': e.description}), e.code
+            return jsonify({'error': 'Internal Server Error', 'message': str(e)}), 500
+        # 일반 요청은 Flask 기본 처리 (또는 커스텀 HTML 에러 페이지)
+        return e
 
     @app.before_request
     def unified_logger():

@@ -176,40 +176,40 @@ def get_heatmap_stats():
 @memo_bp.route('/api/memos', methods=['POST'])
 @login_required
 def create_memo():
-    data = request.json
-    title = data.get('title', '').strip()
-    content = data.get('content', '').strip()
-    color = data.get('color', '#2c3e50')
-    is_pinned = 1 if data.get('is_pinned') else 0
-    status = data.get('status', 'active').strip()
-    group_name = data.get('group_name', GROUP_DEFAULT).strip()
-    user_tags = data.get('tags', [])
-    is_encrypted = 1 if data.get('is_encrypted') else 0
-    password = data.get('password', '').strip()
-    category = data.get('category')
-    
-    # 본문 기반 메타데이터 통합 및 정리 ($그룹, #태그 하단 이동)
-    new_content, final_group, final_tags = parse_and_clean_metadata(content, ui_group=group_name, ui_tags=user_tags)
-    content = new_content
-    group_name = final_group
-    user_tags = final_tags
-
-    # 제목 자동 생성 (비어있을 경우)
-    if not title:
-        title = generate_auto_title(content)
-
-    if is_encrypted and password:
-        content = encrypt_content(content, password)
-    elif is_encrypted and not password:
-        return jsonify({'error': 'Password required for encryption'}), 400
-    
-    now = datetime.datetime.now().isoformat()
-    if not title and not content:
-        return jsonify({'error': 'Title or content required'}), 400
-        
-    conn = get_db()
-    c = conn.cursor()
     try:
+        data = request.json
+        title = data.get('title', '').strip()
+        content = data.get('content', '').strip()
+        color = data.get('color', '#2c3e50')
+        is_pinned = 1 if data.get('is_pinned') else 0
+        status = data.get('status', 'active').strip()
+        group_name = data.get('group_name', GROUP_DEFAULT).strip()
+        user_tags = data.get('tags', [])
+        is_encrypted = 1 if data.get('is_encrypted') else 0
+        password = data.get('password', '').strip()
+        category = data.get('category')
+        
+        # 본문 기반 메타데이터 통합 및 정리 ($그룹, #태그 하단 이동)
+        new_content, final_group, final_tags = parse_and_clean_metadata(content, ui_group=group_name, ui_tags=user_tags)
+        content = new_content
+        group_name = final_group
+        user_tags = final_tags
+
+        # 제목 자동 생성 (비어있을 경우)
+        if not title:
+            title = generate_auto_title(content)
+
+        if is_encrypted and password:
+            content = encrypt_content(content, password)
+        elif is_encrypted and not password:
+            return jsonify({'error': 'Password required for encryption'}), 400
+        
+        now = datetime.datetime.now().isoformat()
+        if not title and not content:
+            return jsonify({'error': 'Title or content required'}), 400
+            
+        conn = get_db()
+        c = conn.cursor()
         c.execute('''
             INSERT INTO memos (title, content, color, is_pinned, status, group_name, category, is_encrypted, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -229,61 +229,63 @@ def create_memo():
             c.execute('UPDATE attachments SET memo_id = ? WHERE filename = ?', (memo_id, fname))
             
         conn.commit()
+        conn.close()
         current_app.logger.info(f"Memo Created: ID {memo_id}, Title: '{title}', Encrypted: {is_encrypted}")
         return jsonify({'id': memo_id, 'message': 'Memo created'}), 201
     except Exception as e:
-        conn.rollback()
+        if 'conn' in locals() and conn:
+            conn.rollback()
+            conn.close()
+        current_app.logger.error(f"CREATE_MEMO FAILED: {str(e)}")
         return jsonify({'error': str(e)}), 500
-    finally:
-        conn.close()
 
 @memo_bp.route('/api/memos/<int:memo_id>', methods=['PUT'])
 @login_required
 def update_memo(memo_id):
-    data = request.json
-    title = data.get('title')
-    content = data.get('content')
-    color = data.get('color')
-    is_pinned = data.get('is_pinned')
-    status = data.get('status')
-    group_name = data.get('group_name')
-    user_tags = data.get('tags')
-    is_encrypted = data.get('is_encrypted')
-    password = data.get('password', '').strip()
-    category = data.get('category')
-    
-    now = datetime.datetime.now().isoformat()
-    conn = get_db()
-    c = conn.cursor()
-    
-    # 보안: 암호화된 메모 수정 시 비밀번호 검증
-    c.execute('SELECT content, is_encrypted, group_name FROM memos WHERE id = ?', (memo_id,))
-    memo = c.fetchone()
-    if memo and memo['is_encrypted']:
-        if not password:
-            conn.close()
-            return jsonify({'error': _t('msg_encrypted_locked')}), 403
-        
-        if decrypt_content(memo['content'], password) is None:
-            conn.close()
-            return jsonify({'error': _t('msg_auth_failed')}), 403
-
-    # 본문 기반 메타데이터 통합 및 정리 ($그룹, #태그 하단 이동)
-    if content is not None:
-        new_content, final_group, final_tags = parse_and_clean_metadata(
-            content, 
-            ui_group=(group_name or memo['group_name']), 
-            ui_tags=(user_tags if user_tags is not None else [])
-        )
-        content = new_content
-        group_name = final_group
-        user_tags = final_tags
-
-    # 제목 자동 생성 (비어있을 경우)
-    if title == "":
-        title = generate_auto_title(content or "")
-
     try:
+        data = request.json
+        title = data.get('title')
+        content = data.get('content')
+        color = data.get('color')
+        is_pinned = data.get('is_pinned')
+        status = data.get('status')
+        group_name = data.get('group_name')
+        user_tags = data.get('tags')
+        is_encrypted = data.get('is_encrypted')
+        password = data.get('password', '').strip()
+        category = data.get('category')
+        
+        now = datetime.datetime.now().isoformat()
+        conn = get_db()
+        c = conn.cursor()
+        
+        # 보안: 암호화된 메모 수정 시 비밀번호 검증
+        c.execute('SELECT content, is_encrypted, group_name FROM memos WHERE id = ?', (memo_id,))
+        memo = c.fetchone()
+        if memo and memo['is_encrypted']:
+            if not password:
+                conn.close()
+                return jsonify({'error': _t('msg_encrypted_locked')}), 403
+            
+            if decrypt_content(memo['content'], password) is None:
+                conn.close()
+                return jsonify({'error': _t('msg_auth_failed')}), 403
+
+        # 본문 기반 메타데이터 통합 및 정리 ($그룹, #태그 하단 이동)
+        if content is not None:
+            new_content, final_group, final_tags = parse_and_clean_metadata(
+                content, 
+                ui_group=(group_name or memo['group_name']), 
+                ui_tags=(user_tags if user_tags is not None else [])
+            )
+            content = new_content
+            group_name = final_group
+            user_tags = final_tags
+
+        # 제목 자동 생성 (비어있을 경우)
+        if title == "":
+            title = generate_auto_title(content or "")
+
         updates = ['updated_at = ?']
         params = [now]
         
@@ -340,13 +342,15 @@ def update_memo(memo_id):
                 c.execute("UPDATE memos SET is_encrypted = 0 WHERE id = ?", (memo_id,))
                 
         conn.commit()
+        conn.close()
         current_app.logger.info(f"Memo Updated: ID {memo_id}, Fields: {list(data.keys())}")
         return jsonify({'message': 'Updated'})
     except Exception as e:
-        conn.rollback()
+        if 'conn' in locals() and conn:
+            conn.rollback()
+            conn.close()
+        current_app.logger.error(f"UPDATE_MEMO FAILED: {str(e)}")
         return jsonify({'error': str(e)}), 500
-    finally:
-        conn.close()
 
 @memo_bp.route('/api/memos/<int:memo_id>', methods=['DELETE'])
 @login_required

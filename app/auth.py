@@ -16,6 +16,8 @@ def login_required(view):
     def wrapped_view(**kwargs):
         # app/routes/auth.py의 세션 키와 일치시킴 (logged_in)
         if session.get('logged_in') is None:
+            if request.path.startswith('/api/'):
+                return jsonify({'error': 'Unauthorized', 'message': 'Session expired or not logged in'}), 401
             return redirect(url_for('main.login_page'))
         return view(**kwargs)
     return wrapped_view
