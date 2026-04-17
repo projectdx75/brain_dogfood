@@ -29,15 +29,31 @@ start() {
 }
 
 stop() {
+    # 1. PID 파일 기반 종료 시도
     if [ -f $PID_FILE ]; then
         PID=$(cat $PID_FILE)
-        echo "🛑 서버를 중지하는 중... (PID: $PID)"
-        kill $PID
-        rm $PID_FILE
-        echo "✅ 서버가 중지되었습니다."
-    else
-        echo "⚠️  실행 중인 서버의 PID 파일을 찾을 수 없습니다."
+        echo "🛑 PID 파일을 사용하여 서버 중지 시도... (PID: $PID)"
+        if kill -0 $PID 2>/dev/null; then
+            kill $PID 2>/dev/null
+            # 종료 대기
+            for i in {1..3}; do
+                if ! kill -0 $PID 2>/dev/null; then break; fi
+                sleep 1
+            done
+        fi
+        rm -f $PID_FILE
     fi
+
+    # 2. 이름 기반 잔류 프로세스 정밀 소탕
+    # grep -v grep 등으로 자기 자신이나 엉뚱한 프로세스가 죽지 않도록 필터링
+    REMAINING_PIDS=$(ps aux | grep "python3 $APP_NAME" | grep -v "grep" | awk '{print $2}')
+    
+    if [ ! -z "$REMAINING_PIDS" ]; then
+        echo "🔍 관리 외 잔류 프로세스 감지: $REMAINING_PIDS"
+        echo "🛑 잔류 프로세스를 강제 종료합니다..."
+        kill -9 $REMAINING_PIDS 2>/dev/null
+    fi
+    echo "✅ 모든 프로세스가 정리되었습니다."
 }
 
 status() {

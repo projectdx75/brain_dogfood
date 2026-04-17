@@ -1,6 +1,8 @@
 /**
  * UI 렌더링 및 이벤트를 관리하는 오케스트레이터 (Orchestrator)
  */
+import { VisualLinker } from './components/VisualLinker.js';
+import { AppService } from './AppService.js';
 import { API } from './api.js';
 import { createMemoCardHtml } from './components/MemoCard.js';
 import { renderGroupList } from './components/SidebarUI.js';
@@ -171,18 +173,37 @@ export const UI = {
             if (style) card.setAttribute('style', style);
             card.innerHTML = innerHtml;
             card.style.cursor = 'pointer';
+            card.setAttribute('draggable', true); // 드래그 활성화
             card.title = I18nManager.t('tooltip_edit_hint');
+            
+            // 💡 드래그 시작 시 메모 ID 저장
+            card.ondragstart = (e) => {
+                // 버튼이나 복사 버튼 클릭 시에는 드래그 무시 (클릭 이벤트 보전)
+                if (e.target.closest('.action-btn, .copy-id-btn')) {
+                    e.preventDefault();
+                    return;
+                }
+                e.dataTransfer.setData('memo-id', memo.id);
+                card.style.opacity = '0.5';
+            };
+            card.ondragend = () => {
+                card.style.opacity = '1';
+            };
+
             card.onclick = (e) => {
                 // 버튼(삭제, 핀 등) 클릭 시에는 무시
                 if (e.target.closest('.action-btn')) return;
-
-                if (e.altKey) {
-                    // Alt + 클릭: 즉시 수정 모드
-                    handlers.onEdit(memo.id);
-                } else {
-                    // 일반 클릭: 상세 모달 열기
+                
+                // 단축키 없이 클릭 시 상세 모달 열기
+                if (!e.ctrlKey && !e.metaKey && !e.altKey) {
                     this.openMemoModal(memo.id, window.allMemosCache || memos);
                 }
+            };
+
+            // 💡 마우스 오버 상태 추적 (전역 'e' 단축키용)
+            card.onmouseenter = () => { window.hoveredMemoId = memo.id; };
+            card.onmouseleave = () => { 
+                if (window.hoveredMemoId === memo.id) window.hoveredMemoId = null; 
             };
             DOM.memoGrid.appendChild(card);
             
@@ -217,6 +238,39 @@ export const UI = {
         bind('.toggle-status', handlers.onToggleStatus);
         bind('.link-item', (linkId) => this.openMemoModal(linkId, window.allMemosCache || []));
         bind('.unlock-btn', handlers.onUnlock);
+
+        // 💡 번호 클릭 시 링크 복사 ([[#ID]])
+        const copyBtn = card.querySelector('.copy-id-btn');
+        if (copyBtn) {
+            copyBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // 💡 Alt + 클릭 시 시각적 연결 모드 시작
+                if (e.altKey) {
+                    VisualLinker.start(id, copyBtn);
+                    return;
+                }
+
+                // 💡 연결 모드 활성화 상태에서 다른 메모의 ID를 클릭하면 연결 완료
+                if (VisualLinker.state.isActive) {
+                    VisualLinker.finish(id);
+                    return;
+                }
+
+                const linkText = `[[#${id}]]`;
+                navigator.clipboard.writeText(linkText).then(() => {
+                    // 간단한 피드백 표시 (임시 툴팁 변경)
+                    const originalTitle = copyBtn.title;
+                    copyBtn.title = I18nManager.t('msg_link_copied');
+                    copyBtn.style.color = 'var(--accent)';
+                    setTimeout(() => {
+                        copyBtn.title = originalTitle;
+                        copyBtn.style.color = '';
+                    }, 2000);
+                });
+            };
+        }
     },
 
     /**

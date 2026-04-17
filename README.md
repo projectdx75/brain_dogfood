@@ -29,10 +29,19 @@
 
 ### ✨ 독보적인 강점
 
-*   **Intelligent Nebula**: 단순히 태그로 묶는 것이 아닙니다. D3.js 기반의 그래프 시각화를 통해 지식 간의 관계를 시각적으로 탐험하세요.
+*   **Intelligent Nebula & Visual Linker**: 단순하게 태그로 묶는 단계를 넘어, D3.js 기반의 그래프 시각화와 **Alt+클릭 시각적 연결** 기능을 통해 지식 간의 관계를 직관적으로 설계하세요.
 *   **AI Insight Hub (Optional)**: Gemini 2.0 Flash가 모든 메모를 실시간으로 요약하고 최적의 태그를 제안합니다. 당신은 기록에만 집중하세요.
 *   **Privacy-First Security**: 메모별로 개별 암호화를 지원합니다. 서버 관리자조차도 당신의 비밀번호 없이는 지식을 엿볼 수 없습니다.
 *   **High-End UX**: 글래스모피즘 기반의 모던한 UI와 하이엔드 셰이더 효과, 그리고 빠른 생산성을 위한 풍부한 단축키 시스템을 제공합니다.
+
+---
+
+### 🚀 최신 업데이트 (v2.0)
+
+*   **비주얼 노드 링커 (Visual Node Linker)**: `#ID` 배지를 `Alt + 클릭`하여 지식과 지식을 선으로 연결하세요. 가장 직관적인 지식 구조화 방식입니다.
+*   **고속 워크플로우 (Instant Edit)**: 메모 카드 위에 마우스를 올리고 `e`를 누르기만 하세요. 모달을 거치지 않고 즉시 수정 모드로 진입합니다.
+*   **드래그 앤 드롭 링크**: 메모를 작성기(Composer)로 드래그하여 즉시 참조 링크(`[[#ID]]`)를 삽입할 수 있습니다.
+*   **직관적인 행동 분리**: '작성 취소'와 '지식 삭제'를 명확히 분리하여, 실수로 지식이 유실되는 것을 방지합니다.
 
 ---
 
@@ -57,7 +66,8 @@
 | **새 메모** | `Ctrl + Shift + N` | 언제 어디서든 즉시 작성창 호출 |
 | **슬래시 명령** | `/` | `/task`, `/ai`, `/h2` 등으로 빠른 서식 지정 |
 | **지식 탐색기** | `Ctrl + Shift + E` | 저장된 지식의 구조를 한눈에 파악 |
-| **즉시 수정** | `Alt + Click` | 메인 그리드에서 즉시 편집 모드 진입 |
+| **즉시 수정** | `e` (Mouse Over) | 카드 위에서 바로 편집 모드로 진입 |
+| **비주얼 링커** | `Alt + #ID 클릭` | 지식과 지식을 선으로 잇는 시각적 연결 |
 
 ---
 
@@ -96,6 +106,13 @@ python brain.py
 - **Knowledge Nebula**: Explore your thoughts through a dynamic D3.js-based interactive knowledge graph.
 - **Advanced Security**: Grain-level encryption for individual memos – your data is for your eyes only.
 - **Premium Aesthetics**: Sleek glassmorphism UI with smooth micro-animations and production-ready UX.
+
+### 🆕 What's New in v2.0
+
+- **Visual Node Linker**: Connect memos visually by `Alt + Clicking` the #ID badge. The most intuitive way to build your knowledge web.
+- **Instant Edit (e-key)**: Hover over a memo and press `e` to jump straight into editing mode. No extra clicks required.
+- **Drag & Drop Linking**: Drag any memo card into the composer to instantly insert a reference link (`[[#ID]]`).
+- **Refined UX**: Clearly separated 'Discard' and 'Delete' actions to prevent accidental data loss.
 
 ### Quick Start
 1. Install dependencies: `pip install -r requirements.txt`

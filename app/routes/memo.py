@@ -130,6 +130,29 @@ def get_memos():
     conn.close()
     return jsonify(memos)
 
+@memo_bp.route('/api/memos/<int:memo_id>', methods=['GET'])
+@login_required
+def get_memo(memo_id):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('SELECT * FROM memos WHERE id = ?', (memo_id,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({'error': 'Memo not found'}), 404
+    
+    memo = dict(row)
+    # 태그 가져오기
+    c.execute('SELECT name, source FROM tags WHERE memo_id = ?', (memo_id,))
+    memo['tags'] = [dict(r) for r in c.fetchall()]
+    
+    # 첨부파일 가져오기
+    c.execute('SELECT id, filename, original_name, file_type, size FROM attachments WHERE memo_id = ?', (memo_id,))
+    memo['attachments'] = [dict(r) for r in c.fetchall()]
+    
+    conn.close()
+    return jsonify(memo)
+
 @memo_bp.route('/api/stats/heatmap', methods=['GET'])
 @login_required
 def get_heatmap_stats():

@@ -27,6 +27,7 @@ export const ComposerManager = {
             password: document.getElementById('memoPassword'),
             foldBtn: document.getElementById('foldBtn'),
             discardBtn: document.getElementById('discardBtn'),
+            deleteBtn: document.getElementById('deleteMemoBtn'), // NEW
             categoryBar: document.getElementById('composerCategoryBar')
         };
         
@@ -40,12 +41,27 @@ export const ComposerManager = {
         this.DOM.foldBtn.onclick = () => this.close();
         
         this.DOM.discardBtn.onclick = async () => {
-            if (confirm(I18nManager.t('msg_confirm_discard'))) {
-                await EditorManager.cleanupSessionFiles();
-                this.clear();
-                this.close();
+            const isEditing = !!this.DOM.id.value;
+            // 💡 기존 메모 수정 중일 때는 확인 없이 바로 닫기
+            // 💡 새 메모 작성 중일 때만 파일 정리 여부 묻기
+            if (isEditing || confirm(I18nManager.t('msg_confirm_discard'))) {
+                this.forceClose();
             }
         };
+
+        // 💡 에디터 내 실제 삭제 버튼
+        if (this.DOM.deleteBtn) {
+            this.DOM.deleteBtn.onclick = async () => {
+                const id = this.DOM.id.value;
+                if (!id) return;
+                if (confirm(I18nManager.t('msg_delete_confirm'))) {
+                    await API.deleteMemo(id);
+                    if (onSaveSuccess) onSaveSuccess();
+                    this.clear();
+                    this.close();
+                }
+            };
+        }
 
         this.DOM.composer.onsubmit = (e) => {
             e.preventDefault();
@@ -87,6 +103,7 @@ export const ComposerManager = {
 
         this.DOM.composer.style.display = 'block';
         this.DOM.trigger.style.display = 'none';
+        if (this.DOM.deleteBtn) this.DOM.deleteBtn.style.display = 'none'; // 새 메모에선 숨김
         this.renderCategoryChips(); // 💡 초기화 후 칩 렌더링
         this.DOM.title.focus();
     },
@@ -112,6 +129,7 @@ export const ComposerManager = {
 
         this.DOM.composer.style.display = 'block';
         this.DOM.trigger.style.display = 'none';
+        if (this.DOM.deleteBtn) this.DOM.deleteBtn.style.display = 'block'; // 수정 시에만 보임
         this.renderCategoryChips(); // 💡 렌더링
         window.scrollTo({ top: 0, behavior: 'smooth' });
     },
@@ -145,6 +163,12 @@ export const ComposerManager = {
     close() {
         this.DOM.composer.style.display = 'none';
         this.DOM.trigger.style.display = 'block';
+    },
+
+    forceClose() {
+        EditorManager.cleanupSessionFiles().catch(e => console.error(e));
+        this.clear();
+        this.close();
     },
 
     clear() {

@@ -52,6 +52,7 @@
 
 ### 2.1 Memos & Search
 - `GET /api/memos`: 필터링된 메모 목록 및 메타데이터 통합 조회.
+- **`GET /api/memos/<int:memo_id>` (v2.0)**: 특정 메모의 상세 정보(본문, 태그, 첨부파일 포함) 단건 조회.
 - `POST /api/memos/<id>/decrypt`: 암호화된 메모 복호화 요청.
 - `GET /api/stats/heatmap`: 히트맵 렌더링을 위한 통계 데이터 조회.
 

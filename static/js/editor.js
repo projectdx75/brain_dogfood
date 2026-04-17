@@ -134,6 +134,15 @@ export const EditorManager = {
         wrapper.addEventListener('drop', async (e) => {
             e.preventDefault(); e.stopPropagation();
             
+            // 💡 1. 메모 카드 드롭 처리 ([[#ID]] 삽입)
+            const memoId = e.dataTransfer.getData('memo-id');
+            if (memoId) {
+                this.editor.focus();
+                this.editor.insertText(` [[#${memoId}]] `);
+                return;
+            }
+
+            // 💡 2. 기존 파일 드롭 처리
             const files = e.dataTransfer.files;
             if (!files || files.length === 0) return;
 

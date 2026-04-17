@@ -32,6 +32,9 @@ export const API = {
         });
         return await this.request(`/api/memos?${params.toString()}`);
     },
+    async fetchMemo(id) {
+        return await this.request(`/api/memos/${id}?_t=${Date.now()}`);
+    },
     async fetchHeatmapData(days = 365) {
         return await this.request(`/api/stats/heatmap?days=${days}&_t=${Date.now()}`);
     },

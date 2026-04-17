@@ -9,6 +9,8 @@ import { ComposerManager } from './js/components/ComposerManager.js';
 import { CalendarManager } from './js/components/CalendarManager.js';
 import { Visualizer } from './js/components/Visualizer.js';
 import { HeatmapManager } from './js/components/HeatmapManager.js';
+import { ThemeManager } from './js/components/ThemeManager.js';
+import { VisualLinker } from './js/components/VisualLinker.js';
 import { DrawerManager } from './js/components/DrawerManager.js';
 import { CategoryManager } from './js/components/CategoryManager.js';
 import { ModalManager } from './js/components/ModalManager.js';
@@ -16,20 +18,6 @@ import { I18nManager } from './js/utils/I18nManager.js';
 import { Constants } from './js/utils/Constants.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // --- 🔹 Initialization ---
-    await UI.initSettings(); // ⭐ i18n 및 테마 로딩 완료까지 최우선 대기
-    EditorManager.init('#editor');
-    
-    // 작성기 초기화 (저장 성공 시 데이터 새로고침 콜백 등록)
-    ComposerManager.init(() => AppService.refreshData(updateSidebarCallback));
-    
-    // 히트맵 초기화
-    HeatmapManager.init('heatmapContainer', (date) => {
-        AppService.setFilter({ date }, updateSidebarCallback);
-    });
-    DrawerManager.init();
-    CategoryManager.init(() => AppService.refreshData(updateSidebarCallback));
-    Visualizer.init('graphContainer');
     UI.initSidebarToggle();
     
     // --- 🔹 Callbacks ---
@@ -45,7 +33,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     };
 
-    // 달력 초기화
+    // --- 🔹 Initialization (After callbacks are defined) ---
+    await UI.initSettings(); 
+
+    // 달력 초기화 (I18n 로드 후 처리)
     CalendarManager.init('calendarContainer', (date) => {
         AppService.setFilter({ date }, updateSidebarCallback);
     });
@@ -54,6 +45,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     UI.initInfiniteScroll(() => {
         AppService.loadMore(updateSidebarCallback);
     });
+
+    // 작성기 콜백
+    const onSaveSuccess = () => AppService.refreshData(updateSidebarCallback);
+
+    // 에디터 초기화 (Ctrl+Enter 연동)
+    EditorManager.init('#editor', () => {
+        if (ComposerManager.DOM.composer.style.display === 'block') {
+            ComposerManager.handleSave(onSaveSuccess);
+        }
+    });
+    
+    // 작성기 초기화
+    ComposerManager.init(onSaveSuccess);
+    
+    // 히트맵 초기화
+    HeatmapManager.init('heatmapContainer', (date) => {
+        AppService.setFilter({ date }, updateSidebarCallback);
+    });
+    
+    DrawerManager.init();
+    CategoryManager.init(onSaveSuccess);
+    Visualizer.init('graphContainer');
 
     // 드래그 앤 드롭 파일 탐지
     EditorManager.bindDropEvent('.composer-wrapper', (shouldOpen) => {
@@ -70,8 +83,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         onDelete: async (id) => {
             if (confirm(I18nManager.t('msg_delete_confirm'))) {
-                await API.deleteMemo(id);
-                AppService.refreshData(updateSidebarCallback);
+                try {
+                    await API.deleteMemo(id);
+                    AppService.refreshData(updateSidebarCallback);
+                } catch (err) {
+                    alert(err.message);
+                }
             }
         },
         onAI: async (id) => {
@@ -151,6 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 🔹 Global Shortcuts (Comprehensive Shift to Ctrl-based System) ---
     document.addEventListener('keydown', (e) => {
+        if (!e.key) return;
         const isCtrl = e.ctrlKey || e.metaKey;
         const isAlt = e.altKey;
         const key = e.key.toLowerCase();
@@ -211,8 +229,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ComposerManager.toggleCategoryBySlot(slotIndex);
             }
         }
+
+        // 6. 'e': 즉시 수정 (마우스 오버 상태일 때)
+        if (key === 'e' && !isCtrl && !isAlt && !e.shiftKey) {
+            const isInput = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) || 
+                            document.activeElement.isContentEditable;
+            if (!isInput && window.hoveredMemoId) {
+                e.preventDefault();
+                window.memoEventHandlers.onEdit(window.hoveredMemoId);
+            }
+        }
     });
 
     // --- 🔹 App Start ---
     AppService.refreshData(updateSidebarCallback);
+    VisualLinker.init(); // 💡 연결 도구 초기화
+
+    // 💡 전역 취소 리스너 (시각적 연결용)
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && VisualLinker.state.isActive) {
+            VisualLinker.cancel();
+        }
+    });
+    window.addEventListener('contextmenu', (e) => {
+        if (VisualLinker.state.isActive) {
+            e.preventDefault();
+            VisualLinker.cancel();
+        }
+    });
+
+    // 💡 전역 클릭 슈퍼 디버깅 (어디가 클릭되는지 추적)
 });

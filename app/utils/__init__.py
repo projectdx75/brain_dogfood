@@ -17,8 +17,8 @@ def parse_metadata(text, default_group=GROUP_DEFAULT):
     if group_match:
         group_name = group_match.group(1)
         
-    # #태그 추출 (마크다운 헤더 방지: 최소 한 개의 공백이나 시작 지점 뒤에 오는 #)
-    tag_matches = re.finditer(r'(?<!#)#(\w+)', text)
+    # #태그 추출 (마크다운 헤더 및 내부 링크[[#ID]] 방지)
+    tag_matches = re.finditer(r'(?<!#)(?<!\[\[)#(\w+)', text)
     for match in tag_matches:
         tags.append(match.group(1))
         
@@ -44,8 +44,8 @@ def parse_and_clean_metadata(content, ui_group=GROUP_DEFAULT, ui_tags=None):
     # 3. 본문에서 기호 패턴 삭제
     # $그룹 삭제
     content = re.sub(r'\$\w+', '', content)
-    # #태그 삭제 (헤더 제외)
-    content = re.sub(r'(?<!#)#\w+', '', content)
+    # #태그 삭제 (헤더 및 내부 링크 제외)
+    content = re.sub(r'(?<!#)(?<!\[\[)#\w+', '', content)
     content = content.strip()
 
     # 4. 데이터 통합

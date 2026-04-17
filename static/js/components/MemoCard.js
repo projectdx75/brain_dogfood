@@ -81,14 +81,14 @@ export function createMemoCardHtml(memo, isDone) {
     const isLocked = memo.is_encrypted && (!htmlContent || htmlContent.includes('encrypted-block'));
     const actionsHtml = isLocked ? '' : `
         <div class="memo-actions">
-            <button class="action-btn toggle-pin" data-id="${memo.id}" title="${I18nManager.t('title_pin')}">${memo.is_pinned ? '⭐' : '☆'}</button>
-            <button class="action-btn toggle-status" data-id="${memo.id}" title="${isDone ? I18nManager.t('title_undo') : I18nManager.t('title_done')}">${isDone ? '↩️' : '✅'}</button>
-            ${!isDone ? `<button class="action-btn ai-btn" data-id="${memo.id}" title="${I18nManager.t('title_ai')}">🪄</button>` : ''}
-            <button class="action-btn edit-btn" data-id="${memo.id}" title="${I18nManager.t('title_edit')}">✏️</button>
-            <button class="action-btn delete-btn" data-id="${memo.id}" title="${I18nManager.t('title_delete')}">🗑️</button>
+            <button class="action-btn toggle-pin" draggable="false" data-id="${memo.id}" title="${I18nManager.t('title_pin')}">${memo.is_pinned ? '⭐' : '☆'}</button>
+            <button class="action-btn toggle-status" draggable="false" data-id="${memo.id}" title="${isDone ? I18nManager.t('title_undo') : I18nManager.t('title_done')}">${isDone ? '↩️' : '✅'}</button>
+            ${!isDone ? `<button class="action-btn ai-btn" draggable="false" data-id="${memo.id}" title="${I18nManager.t('title_ai')}">🪄</button>` : ''}
+            <button class="action-btn edit-btn" draggable="false" data-id="${memo.id}" title="${I18nManager.t('title_edit')}">✏️</button>
+            <button class="action-btn delete-btn" draggable="false" data-id="${memo.id}" title="${I18nManager.t('title_delete')}">🗑️</button>
         </div>
     `;
-    const idBadge = `<div style="position:absolute; top:10px; right:12px; color:rgba(255,255,255,0.15); font-size:10px; font-weight:900;">#${memo.id}</div>`;
+    const idBadge = `<div class="copy-id-btn" draggable="false" data-id="${memo.id}" title="${I18nManager.t('tooltip_id_copy').replace('[[#ID]]', `[[#${memo.id}]]`)}" style="position:absolute; top:10px; right:12px; color:rgba(255,255,255,0.15); font-size:10px; font-weight:900; cursor:pointer; z-index:10;">#${memo.id}</div>`;
 
     return {
         className: cardClass,
