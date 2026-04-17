@@ -127,6 +127,34 @@ We provide a security model where user data is practically undecipherable. Built
 - **Instant Edit (e-key)**: Hover over a memo and press `e` to jump straight into editing mode. Zero-click productivity.
 - **Drag & Drop Workflow**: Drag memo cards into the composer to instantly insert a semantic reference.
 
+---
+
+## 🆚 memos vs Brain Dogfood (Comparison)
+
+| Feature | **memos (Open Source)** | **🧠 Brain Dogfood** |
+| :--- | :--- | :--- |
+| **Philosophy** | Timeline-based micro-blogging | Organic knowledge linking & AI insights |
+| **Visualization** | Basic calendar/heatmap | **D3.js Knowledge Nebula (Graph)** |
+| **AI Integration** | Dependent on external plugins | **Native Gemini 2.0 Integration (Auto summary/tagging)** |
+| **Security** | Database-wide security | **Grain-level encryption per memo** |
+| **Usability** | Mobile-first app | **Desktop productivity optimized (Shortcuts)** |
+| **Design** | Minimalist, static UI | **Modern Glassmorphism & Dynamic Animations** |
+
+---
+
+## ⌨️ Productivity Shortcuts
+
+| Action | Shortcut | Description |
+| :--- | :--- | :--- |
+| **Save/Edit** | `Ctrl + Enter` | Immediately sync memo to server |
+| **New Memo** | `Ctrl + Shift + N` | Call the composer from anywhere |
+| **Slash Commands** | `/` | Quickly format with `/task`, `/ai`, `/h2`, etc. |
+| **Explorer** | `Ctrl + Shift + E` | Gain an overview of the knowledge structure |
+| **Instant Edit** | `e` (Mouse Over) | Enter edit mode directly from the card |
+| **Visual Linker** | `Alt + #ID Click` | Connect notes visually via 'Visual Wiring' |
+
+---
+
 ### Quick Start
 1. Install dependencies: `pip install -r requirements.txt`
 2. Create your `.env` from `.env.example` and update your master credentials.
