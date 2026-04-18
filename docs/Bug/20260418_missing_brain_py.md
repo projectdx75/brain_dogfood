@@ -6,7 +6,8 @@
 ## 조치 사항
 1. 루트 디렉토리의 `brain.py` 파일을 `brain_dogfood_stable` 디렉토리로 복사.
 2. Git commit 및 원격 저장소(`origin main`)에 푸시 완료.
+3. `tools/sync_stable.py`와 `tools/final_audit.py`에서 `brain.py`를 제외 목록에서 삭제하여 향후 자동 동기화되도록 조치.
 
 ## 향후 주의사항
 - 배포용 레포지토리(stable) 업데이트 시, 실행에 필수적인 진입점 파일(`brain.py`)이 포함되어 있는지 반드시 확인해야 함.
-- 파일 동기화 스크립트가 있다면 해당 파일이 누락되지 않도록 업데이트 필요.
+- 동기화 도구(`sync_stable.py`)의 제외 목록(`EXCLUDE_FILES`)을 수정할 때는 서비스 코어 파일이 포함되지 않도록 주의 필요.
